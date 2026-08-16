@@ -13,6 +13,6 @@ export default function AboutPage() {
     <h2>Private by design</h2>
     <p>Conversions run on your device using open-source browser technologies. We do not require an account and do not upload the files you select to an OmniConvert server.</p>
     <h2>Simple and useful</h2>
-    <p>Choose a file, select a compatible output format and download the result. Video and audio conversion uses FFmpeg WebAssembly; image and document tools use browser APIs and open-source libraries.</p>
+    <p>Choose a file, select a compatible output format and download the result. Video and audio conversion uses FFmpeg WebAssembly; image and document tools use browser APIs and open-source libraries. Explore our <a href="/tools">conversion tools</a> or read the <a href="/guides">file conversion guides</a> for practical help.</p>
   </main>;
 }

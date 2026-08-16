@@ -124,15 +124,17 @@ export default function Home() {
         <div className="logo" aria-hidden="true">O</div>
         <div className="title">OmniConvert</div>
         <nav className="nav" aria-label="Main navigation">
+          <a href="/tools">Tools</a>
+          <a href="/guides">Guides</a>
           <a href="#how-it-works">How it works</a>
-          <a href="#faq">FAQ</a>
           <a href="/about">About</a>
         </nav>
       </header>
-      <p className="subtitle">
-        Free online video, audio, image, PDF and document conversion. Files are
-        processed in your browser and are never uploaded to our servers.
-      </p>
+      <section className="hero-copy">
+        <p className="eyebrow">PRIVATE BY DESIGN · FAST BY DEFAULT</p>
+        <h1>Convert files.<br /><span>Keep them private.</span></h1>
+        <p className="subtitle">Free online video, audio, image, PDF and document conversion. Everything happens in your browser—your files are never uploaded to our servers.</p>
+      </section>
 
       <div
         className={`dropzone ${drag ? 'drag' : ''}`}
@@ -161,6 +163,17 @@ export default function Home() {
       </div>
 
       <AdsterraNativeBanner />
+
+      <section className="feature-grid" aria-label="OmniConvert benefits">
+        <div className="feature-card"><span className="feature-icon">◉</span><strong>100% private</strong><p>Files stay in your browser, not on an upload queue.</p></div>
+        <div className="feature-card"><span className="feature-icon">✦</span><strong>Powerful formats</strong><p>Video, audio, image, PDF and common office formats.</p></div>
+        <div className="feature-card"><span className="feature-icon">↯</span><strong>One-click results</strong><p>Batch your work and download results immediately.</p></div>
+      </section>
+
+      <section className="popular-section" aria-labelledby="popular-heading">
+        <div><p className="eyebrow">POPULAR CONVERSIONS</p><h2 id="popular-heading">Tools for your next file</h2></div>
+        <div className="popular-links"><a href="/tools/heic-to-jpg">HEIC → JPG <span>↗</span></a><a href="/tools/mp4-to-mp3">MP4 → MP3 <span>↗</span></a><a href="/tools/pdf-to-jpg">PDF → JPG <span>↗</span></a><a href="/tools/video-converter">Video converter <span>↗</span></a></div>
+      </section>
 
       {items.length > 0 && (
         <>
@@ -266,7 +279,7 @@ export default function Home() {
           <span className="pill">Documents: PDF · DOCX · XLSX · TXT · CSV · JSON</span>
         </div>
         <p>Free browser-based conversion with no account required.</p>
-        <p><a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a></p>
+        <p><a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="https://github.com/tayz07814-ctrl/omniconvert" target="_blank" rel="noopener">GitHub</a></p>
         <p><a href="https://www.effectivecpmnetwork.com/nu4tvkfn?key=01794e3496fc7f512df5538953637ce0" target="_blank" rel="sponsored nofollow noopener">Sponsored link</a></p>
       </footer>
     </main>
