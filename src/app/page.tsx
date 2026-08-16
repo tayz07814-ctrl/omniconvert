@@ -22,6 +22,7 @@ interface Item {
   progress: number;
   result?: ConvertResult;
   error?: string;
+  message?: string;
   thumb?: string;
 }
 
@@ -84,10 +85,10 @@ export default function Home() {
 
   const convertOne = async (it: Item): Promise<void> => {
     if (!it.target || it.status === 'running') return;
-    update(it.id, { status: 'running', progress: 0, error: undefined, result: undefined });
+    update(it.id, { status: 'running', progress: 0, error: undefined, result: undefined, message: 'Preparing file…' });
     try {
-      const result = await convertFile(it.file, it.target, (ratio) =>
-        update(it.id, { progress: Math.round(ratio * 100) }),
+      const result = await convertFile(it.file, it.target, (ratio, message) =>
+        update(it.id, { progress: Math.round(ratio * 100), message }),
       );
       update(it.id, { status: 'done', progress: 100, result });
     } catch (err) {
@@ -114,35 +115,32 @@ export default function Home() {
 
   return (
     <main className="container">
-      <div className="header">
-        <div className="logo">O</div>
-        <div className="title">OmniConvert</div>
-      </div>
-      <p className="subtitle">
-        Convert images, audio, video and PDFs entirely in your browser. Nothing is
-        uploaded — your files never leave this device.
-      </p>
+      <header className="site-header">
+        <div className="brand"><div className="logo">O</div><div className="title">OmniConvert</div></div>
+        <div className="privacy-badge"><span /> Files stay on your device</div>
+      </header>
 
-      <div
+      <section className="hero">
+        <p className="eyebrow">PRIVATE FILE CONVERTER</p>
+        <h1>Change formats.<br /><em>Keep control.</em></h1>
+        <p className="subtitle">Convert images, video, audio and PDFs directly in your browser. No upload queue, no account, no copies of your files.</p>
+        <div className="format-strip"><span>Images</span><i>•</i><span>Video</span><i>•</i><span>Audio</span><i>•</i><span>PDF</span></div>
+      </section>
+
+      <section
         className={`dropzone ${drag ? 'drag' : ''}`}
         onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDrag(true);
-        }}
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
         onDragLeave={() => setDrag(false)}
         onDrop={onDrop}
       >
-        <h2>Drop files here</h2>
-        <p>or click to browse — supports 100+ formats</p>
-        <input
-          ref={inputRef}
-          type="file"
-          multiple
-          hidden
-          onChange={(e) => e.target.files && addFiles(e.target.files)}
-        />
-      </div>
+        <div className="upload-icon">↑</div>
+        <h2>Drop files to start converting</h2>
+        <p>Drag &amp; drop anywhere here, or choose files from your device.</p>
+        <button className="browse" type="button">Choose files</button>
+        <small>Multiple files supported · Video conversions load a one-time browser engine</small>
+        <input ref={inputRef} type="file" multiple hidden onChange={(e) => e.target.files && addFiles(e.target.files)} />
+      </section>
 
       {items.length > 0 && (
         <>
@@ -188,7 +186,7 @@ export default function Home() {
                         <span style={{ width: `${it.progress}%` }} />
                       </div>
                       {it.status === 'running' && (
-                        <div className="status run">Converting… {it.progress}%</div>
+                        <div className="status run">{it.message ?? 'Converting…'} {it.progress > 0 ? `${it.progress}%` : ''}</div>
                       )}
                       {it.status === 'done' && (
                         <div className="status ok">Done — ready to download</div>
@@ -224,14 +222,13 @@ export default function Home() {
         </>
       )}
 
-      <div className="footer">
-        <div>
-          <span className="pill">Images: PNG · JPG · WebP · GIF · BMP · TIFF · HEIC → PDF</span>
-          <span className="pill">Video/Audio: MP4 · WebM · MOV · MP3 · WAV · OGG · FLAC</span>
-          <span className="pill">PDF → Images (zip)</span>
-        </div>
-        <p>Powered by ffmpeg.wasm, pdf.js, pdf-lib &amp; Canvas. 100% client-side.</p>
-      </div>
+      <section className="trust-grid">
+        <div><b>01</b><h3>Private by design</h3><p>Your file is processed in this browser, not sent to a server.</p></div>
+        <div><b>02</b><h3>Built for batches</h3><p>Add several files and choose a different output for each one.</p></div>
+        <div><b>03</b><h3>Video, included</h3><p>Video and audio run through a local browser engine; the first use may take a moment to load.</p></div>
+      </section>
+
+      <footer className="footer"><span>Images · Video · Audio · PDF</span><span>100% browser-based</span></footer>
     </main>
   );
 }

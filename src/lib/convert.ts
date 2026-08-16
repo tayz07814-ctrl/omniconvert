@@ -126,6 +126,7 @@ async function convertWithFFmpeg(
   targetExt: string,
   onProgress?: ProgressFn,
 ): Promise<ConvertResult> {
+  onProgress?.(0, 'Loading the private video converter…');
   const ff = await getFFmpeg();
   const srcExt = extensionOf(file.name) || 'dat';
   const inputName = `input.${srcExt}`;
@@ -135,7 +136,7 @@ async function convertWithFFmpeg(
   await ff.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
 
   const onProg = ({ progress }: { progress: number }) => {
-    onProgress?.(Math.min(1, Math.max(0, progress)));
+    onProgress?.(Math.min(1, Math.max(0, progress)), 'Converting on this device…');
   };
   if (onProgress) ff.on('progress', onProg);
 
