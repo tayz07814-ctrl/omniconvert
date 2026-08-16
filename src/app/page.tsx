@@ -9,6 +9,7 @@ import {
   type FormatDef,
 } from '@/lib/formats';
 import { convertFile, type ConvertResult } from '@/lib/convert';
+import AdsterraNativeBanner from '@/components/AdsterraNativeBanner';
 
 type Status = 'idle' | 'running' | 'done' | 'error';
 
@@ -159,6 +160,8 @@ export default function Home() {
         />
       </div>
 
+      <AdsterraNativeBanner />
+
       {items.length > 0 && (
         <>
           <div className="toolbar">
@@ -264,6 +267,7 @@ export default function Home() {
         </div>
         <p>Free browser-based conversion with no account required.</p>
         <p><a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a></p>
+        <p><a href="https://www.effectivecpmnetwork.com/nu4tvkfn?key=01794e3496fc7f512df5538953637ce0" target="_blank" rel="sponsored nofollow noopener">Sponsored link</a></p>
       </footer>
     </main>
   );

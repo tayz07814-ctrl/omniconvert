@@ -14,8 +14,8 @@ export default function PrivacyPage() {
     <p>OmniConvert processes selected files in your browser. Files are not uploaded to or stored on an OmniConvert application server. Downloaded results remain under your control.</p>
     <h2>Third-party resources</h2>
     <p>Some tools download open-source WebAssembly and worker resources from public content delivery networks when needed. Those requests may include normal browser information such as your IP address. No file contents are sent to OmniConvert by the converter.</p>
-    <h2>Analytics and advertising</h2>
-    <p>If analytics or advertising services are enabled on this site, those providers may use cookies or similar technologies according to their own policies. This page will be updated when such services are added.</p>
+    <h2>Advertising and smart links</h2>
+    <p>OmniConvert uses Adsterra advertising and sponsored links. Adsterra and its advertising partners may use cookies, device identifiers, IP addresses and similar technologies to deliver, measure or personalize advertising according to their own policies. Browser settings and available consent tools may be used to manage cookies. Advertising availability can vary by country and browser.</p>
     <h2>Contact</h2>
     <p>For privacy questions, contact us through the <a href="/contact">contact page</a>.</p>
   </main>;

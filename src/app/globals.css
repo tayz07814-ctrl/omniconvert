@@ -76,6 +76,15 @@ a { color: var(--brand); }
 .dropzone.drag { border-color: var(--brand); background: var(--panel-2); transform: scale(1.005); }
 .dropzone h2 { margin: 10px 0 4px; font-size: 18px; }
 .dropzone p { margin: 0; color: var(--muted); font-size: 14px; }
+.ad-slot {
+  margin: 22px auto;
+  min-height: 90px;
+  max-width: 728px;
+  overflow: hidden;
+  text-align: center;
+}
+.ad-label { color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 6px; }
+.native-ad > div { min-height: 90px; }
 
 .toolbar {
   display: flex; align-items: center; justify-content: space-between;
