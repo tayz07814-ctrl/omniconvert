@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   robots: { index: true, follow: true },
   verification: {
-    google: 'jhT4PND8IAo8YwzyZlPYtz2gpaNkMndO1nKdM9Uj0Lo',
+    google: 'Ww4pZHJrnlF6GUftKNzLh3JueL3HxyxfSzdjHeFQA6w',
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://omniconvert-z.vercel.app'),
   openGraph: {
