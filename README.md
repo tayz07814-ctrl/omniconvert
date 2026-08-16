@@ -1,30 +1,32 @@
 # OmniConvert
 
-A 100% client-side file converter (like CloudConvert) that runs entirely in your
-browser. Files are never uploaded — all conversions happen locally on your device
-using WASM libraries.
+OmniConvert is a free, privacy-first file converter. Conversion happens locally in the browser, so selected files are not uploaded to an OmniConvert application server.
 
 ## Features
-- **Images**: PNG, JPG, WebP, GIF, BMP, TIFF, HEIC/HEIF → image or PDF
-- **Video / Audio**: MP4, WebM, MOV, AVI, MKV ↔ MP3, WAV, OGG, AAC, M4A, FLAC (ffmpeg.wasm)
-- **PDF**: → PNG/JPG/WebP/GIF/BMP (zip of pages)
-- Drag & drop, batch convert, per-file target format.
+
+- **Images**: PNG, JPG/JPEG, WebP, SVG, GIF, BMP, TIFF, HEIC/HEIF and ICO input; reliable PNG, JPG, WebP, BMP, SVG and PDF output.
+- **Video**: MP4, WebM, MOV, AVI, MKV and M4V conversions with FFmpeg WebAssembly.
+- **Audio**: MP3, WAV, OGG, AAC, M4A and FLAC conversions.
+- **Documents**: PDF pages to image ZIPs, PDF text extraction, TXT, Markdown, HTML, CSV, JSON, XML, RTF, DOCX, XLSX and PPTX text extraction/conversion.
+- Drag and drop, batch conversion, progress reporting and browser-only processing.
+
+Animated GIFs and complex office layouts are flattened to their readable content when converted; this tool does not promise pixel-perfect office-document round trips.
 
 ## Tech
-Next.js (App Router, static export) · ffmpeg.wasm · pdf.js · pdf-lib · Canvas.
+
+Next.js App Router · FFmpeg WebAssembly · pdf.js · pdf-lib · Canvas · JSZip.
 
 ## Run locally
+
 ```bash
 npm install
 npm run dev      # http://localhost:3000
-npm run build    # static output in ./out
+npm run lint
+npm run build
 ```
 
-## Deploy to Vercel
-1. Push this folder to a GitHub repo.
-2. In Vercel, import the repo. It auto-detects Next.js and builds to `out/`
-   (configured via `next.config.js` `output: 'export'` + `vercel.json`).
-3. Done — the app is a fully static, serverless site.
+## Deploy
 
-> The ffmpeg core (~30 MB WASM) is fetched from unpkg on first video/audio
-> conversion, then cached by the browser. Image/PDF conversions need no download.
+The app works on Vercel or another Node-compatible Next.js host. Set `NEXT_PUBLIC_SITE_URL` to the public site URL so the generated sitemap and robots file contain the correct canonical host.
+
+The FFmpeg core (about 30 MB) is fetched from a public CDN the first time a video/audio conversion is used. Image and document conversions do not require that download.

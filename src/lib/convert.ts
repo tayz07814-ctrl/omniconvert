@@ -6,6 +6,7 @@ import {
 } from './formats';
 import { canvasToBmp } from './bmp';
 import { getFFmpeg } from './ffmpeg';
+import { convertDocument } from './documents';
 
 export interface ConvertResult {
   blob: Blob;
@@ -72,6 +73,11 @@ function drawToCanvas(img: HTMLImageElement): HTMLCanvasElement {
 
 function canvasToBlob(canvas: HTMLCanvasElement, mime: string, ext: string): Promise<Blob> {
   if (ext === 'bmp') return Promise.resolve(canvasToBmp(canvas));
+  if (ext === 'svg') {
+    const png = canvas.toDataURL('image/png');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}" viewBox="0 0 ${canvas.width} ${canvas.height}"><image href="${png}" width="${canvas.width}" height="${canvas.height}"/></svg>`;
+    return Promise.resolve(new Blob([svg], { type: mime }));
+  }
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (b) => (b ? resolve(b) : reject(new Error('Encode failed'))),
@@ -128,38 +134,61 @@ async function convertWithFFmpeg(
 ): Promise<ConvertResult> {
   const ff = await getFFmpeg();
   const srcExt = extensionOf(file.name) || 'dat';
-  const inputName = `input.${srcExt}`;
-  const outputName = `output.${targetExt}`;
+  // Unique names prevent a failed conversion from poisoning the next one in
+  // ffmpeg.wasm's in-memory filesystem.
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const inputName = `input-${id}.${srcExt}`;
+  const outputName = `output-${id}.${targetExt}`;
   const def = FORMAT_MAP[targetExt];
-
-  await ff.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
-
+  let lastLog = '';
+  const onLog = ({ message }: { message: string }) => { lastLog = message; };
   const onProg = ({ progress }: { progress: number }) => {
-    onProgress?.(Math.min(1, Math.max(0, progress)));
+    if (Number.isFinite(progress)) onProgress?.(Math.min(1, Math.max(0, progress)));
   };
+
+  ff.on('log', onLog);
   if (onProgress) ff.on('progress', onProg);
-
-  const audioOnly = ['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'].includes(targetExt);
-  const args = ['-i', inputName];
-  if (audioOnly) args.push('-vn');
-  if (targetExt === 'mp3') args.push('-b:a', '192k');
-  args.push(outputName);
-
   try {
-    await ff.exec(args);
+    await ff.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
+    const audioOnly = ['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'].includes(targetExt);
+    const args = ['-y', '-i', inputName];
+    if (audioOnly) {
+      args.push('-vn');
+      if (targetExt === 'mp3') args.push('-c:a', 'libmp3lame', '-b:a', '192k');
+      if (targetExt === 'wav') args.push('-c:a', 'pcm_s16le');
+      if (targetExt === 'ogg') args.push('-c:a', 'libvorbis', '-q:a', '5');
+      if (targetExt === 'aac') args.push('-c:a', 'aac', '-b:a', '192k');
+      if (targetExt === 'm4a') args.push('-c:a', 'aac', '-b:a', '192k');
+      if (targetExt === 'flac') args.push('-c:a', 'flac');
+    } else if (targetExt === 'mp4' || targetExt === 'm4v' || targetExt === 'mov') {
+      args.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k');
+      if (targetExt === 'mp4' || targetExt === 'm4v') args.push('-movflags', '+faststart');
+    } else if (targetExt === 'webm') {
+      args.push('-c:v', 'libvpx', '-crf', '30', '-b:v', '0', '-c:a', 'libvorbis');
+    }
+    args.push(outputName);
+
+    let code = await ff.exec(args);
+    // Some browser-core builds omit an encoder. Let ffmpeg choose compatible
+    // codecs before returning a failure for video container conversions.
+    if (code !== 0 && !audioOnly) {
+      await ff.deleteFile(outputName).catch(() => undefined);
+      code = await ff.exec(['-y', '-i', inputName, outputName]);
+    }
+    if (code !== 0) throw new Error(lastLog || 'FFmpeg could not convert this video.');
+
+    const out = (await ff.readFile(outputName)) as Uint8Array;
+    return {
+      blob: new Blob([out], { type: def?.mime || 'application/octet-stream' }),
+      ext: targetExt,
+      mime: def?.mime || 'application/octet-stream',
+    };
   } finally {
+    ff.off('log', onLog);
     if (onProgress) ff.off('progress', onProg);
+    await ff.deleteFile(inputName).catch(() => undefined);
+    await ff.deleteFile(outputName).catch(() => undefined);
   }
-
-  const out = (await ff.readFile(outputName)) as Uint8Array;
-  await ff.deleteFile(inputName);
-  await ff.deleteFile(outputName);
-
-  return {
-    blob: new Blob([out], { type: def?.mime || 'application/octet-stream' }),
-    ext: targetExt,
-    mime: def?.mime || 'application/octet-stream',
-  };
 }
 
 export async function convertFile(
@@ -183,15 +212,19 @@ export async function convertFile(
   }
 
   if (srcCat === 'document') {
-    const images = await pdfToImages(file, tgtDef);
-    if (images.length === 1) {
-      return { blob: images[0], ext: targetExt, mime: tgtDef.mime };
+    if (srcExt === 'pdf' && tgtDef.category === 'image') {
+      const images = await pdfToImages(file, tgtDef);
+      if (images.length === 1) {
+        return { blob: images[0], ext: targetExt, mime: tgtDef.mime };
+      }
+      const { default: JSZip } = await import('jszip');
+      const zip = new JSZip();
+      images.forEach((b, i) => zip.file(`page-${String(i + 1).padStart(3, '0')}.${targetExt}`, b));
+      const blob = await zip.generateAsync({ type: 'blob' });
+      return { blob, ext: 'zip', mime: 'application/zip' };
     }
-    const { default: JSZip } = await import('jszip');
-    const zip = new JSZip();
-    images.forEach((b, i) => zip.file(`page-${String(i + 1).padStart(3, '0')}.${targetExt}`, b));
-    const blob = await zip.generateAsync({ type: 'blob' });
-    return { blob, ext: 'zip', mime: 'application/zip' };
+    const blob = await convertDocument(file, tgtDef);
+    return { blob, ext: targetExt, mime: tgtDef.mime };
   }
 
   if (srcCat === 'video' || srcCat === 'audio') {

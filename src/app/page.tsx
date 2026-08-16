@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import Image from 'next/image';
 import { saveAs } from 'file-saver';
 import {
-  FORMAT_MAP,
   extensionOf,
   getTargets,
   type FormatDef,
@@ -79,6 +79,11 @@ export default function Home() {
       return prev.filter((x) => x.id !== id);
     });
 
+  const clearAll = () => {
+    items.forEach((it) => { if (it.thumb) URL.revokeObjectURL(it.thumb); });
+    setItems([]);
+  };
+
   const update = (id: string, patch: Partial<Item>) =>
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
 
@@ -114,17 +119,26 @@ export default function Home() {
 
   return (
     <main className="container">
-      <div className="header">
-        <div className="logo">O</div>
+      <header className="header">
+        <div className="logo" aria-hidden="true">O</div>
         <div className="title">OmniConvert</div>
-      </div>
+        <nav className="nav" aria-label="Main navigation">
+          <a href="#how-it-works">How it works</a>
+          <a href="#faq">FAQ</a>
+          <a href="/about">About</a>
+        </nav>
+      </header>
       <p className="subtitle">
-        Convert images, audio, video and PDFs entirely in your browser. Nothing is
-        uploaded — your files never leave this device.
+        Free online video, audio, image, PDF and document conversion. Files are
+        processed in your browser and are never uploaded to our servers.
       </p>
 
       <div
         className={`dropzone ${drag ? 'drag' : ''}`}
+        role="button"
+        tabIndex={0}
+        aria-label="Choose files to convert"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click(); }}
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => {
           e.preventDefault();
@@ -134,10 +148,11 @@ export default function Home() {
         onDrop={onDrop}
       >
         <h2>Drop files here</h2>
-        <p>or click to browse — supports 100+ formats</p>
+        <p>or click to browse — supports popular video, audio, image and document formats</p>
         <input
           ref={inputRef}
           type="file"
+          accept="video/*,audio/*,image/*,.pdf,.txt,.md,.html,.htm,.csv,.json,.xml,.rtf,.docx,.xlsx,.pptx"
           multiple
           hidden
           onChange={(e) => e.target.files && addFiles(e.target.files)}
@@ -149,7 +164,7 @@ export default function Home() {
           <div className="toolbar">
             <div className="left">{items.length} file(s) added</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn ghost" onClick={() => setItems([])} disabled={busy}>
+              <button className="btn ghost" onClick={clearAll} disabled={busy}>
                 Clear all
               </button>
               <button className="btn primary" onClick={convertAll} disabled={busy}>
@@ -162,7 +177,7 @@ export default function Home() {
             {items.map((it) => (
               <div className="file-row" key={it.id}>
                 <div className="thumb">
-                  {it.thumb ? <img src={it.thumb} alt="" /> : it.srcExt.toUpperCase()}
+                  {it.thumb ? <Image src={it.thumb} alt="" width={44} height={44} unoptimized /> : it.srcExt.toUpperCase()}
                 </div>
                 <div className="file-main">
                   <div className="file-name">{it.file.name}</div>
@@ -224,14 +239,32 @@ export default function Home() {
         </>
       )}
 
-      <div className="footer">
-        <div>
-          <span className="pill">Images: PNG · JPG · WebP · GIF · BMP · TIFF · HEIC → PDF</span>
-          <span className="pill">Video/Audio: MP4 · WebM · MOV · MP3 · WAV · OGG · FLAC</span>
-          <span className="pill">PDF → Images (zip)</span>
+      <section className="content-section" id="how-it-works">
+        <h2>Convert files privately in three steps</h2>
+        <div className="steps">
+          <div><strong>1. Choose a file</strong><span>Drag and drop or browse from your device.</span></div>
+          <div><strong>2. Select an output</strong><span>Pick a compatible image, video, audio or document format.</span></div>
+          <div><strong>3. Download</strong><span>Convert locally and download the result immediately.</span></div>
         </div>
-        <p>Powered by ffmpeg.wasm, pdf.js, pdf-lib &amp; Canvas. 100% client-side.</p>
-      </div>
+        <p className="small-copy">OmniConvert uses Canvas, pdf.js, pdf-lib, JSZip and ffmpeg.wasm. Video and audio tools download the open-source FFmpeg engine when first used; your file remains in your browser.</p>
+      </section>
+
+      <section className="content-section" id="faq">
+        <h2>Frequently asked questions</h2>
+        <details><summary>Are my files uploaded?</summary><p>No. Conversion runs locally in your browser. Large video files may use substantial memory and processing power on your device.</p></details>
+        <details><summary>Which files can I convert?</summary><p>Common video and audio containers, popular image formats, PDF, plain-text formats, DOCX, XLSX and PPTX are supported. PDF pages can also be exported as images.</p></details>
+        <details><summary>Why does the first video conversion take longer?</summary><p>The browser downloads and initializes the FFmpeg WebAssembly engine once. Later conversions can reuse it while this tab is open.</p></details>
+      </section>
+
+      <footer className="footer">
+        <div>
+          <span className="pill">Images: PNG · JPG · WebP · SVG · GIF · BMP · TIFF · HEIC</span>
+          <span className="pill">Video/audio: MP4 · WebM · MOV · MP3 · WAV · OGG · FLAC</span>
+          <span className="pill">Documents: PDF · DOCX · XLSX · TXT · CSV · JSON</span>
+        </div>
+        <p>Free browser-based conversion with no account required.</p>
+        <p><a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a></p>
+      </footer>
     </main>
   );
 }
